@@ -6,6 +6,9 @@
 #define PROJECT_TOY_JSON_H
 
 
+#include <cstddef>
+#include <string>
+
 namespace toy{
 
 //    enum JsonType{
@@ -37,13 +40,12 @@ namespace toy{
 
     struct JsonObject{
         JsonString key;
-        JsonValue value;
+        JsonValue *value;
     };
 
     struct JsonArray {
         int array_len;
-        JsonValue *Value;
-
+        JsonValue *value;
     };
 
     struct JsonValue{
@@ -58,10 +60,23 @@ namespace toy{
             JsonArray array;
         } u;
 
-
     };
 
-    class JsonParser {
+
+
+
+    class JsonReader{
+    public:
+        int parse(const char *json_str, JsonValue &value);
+        int parse(const char *json_str, const int json_len, JsonValue &value);
+
+    private:
+        int parseObject(const char *json_str, );
+
+    };
+    class JsonWriter{
+    public :
+        std::string write(const JsonValue &value);
 
 
     };
