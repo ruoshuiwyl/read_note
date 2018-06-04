@@ -71,11 +71,11 @@ namespace toy {
                 value = parserArray(ptr, end_ptr);
                 break;
             case '"' : // parser String
-                value = parserString(json_str, end_ptr);
+                value = parserStringValue(json_str, end_ptr);
                 break;
             case 't': // parser true
             case 'f': // parser false
-                value - parserBool(json_str, end_ptr);
+                value = parserBool(json_str, end_ptr);
                 break;
             case 'n': // parser null
                 break;
@@ -90,7 +90,7 @@ namespace toy {
             case '7':
             case '8':
             case '9': // parser number
-                value *parserNumber(json_str, end_ptr);
+                value = parserNumber(json_str, end_ptr);
                 break;
             default:
                 break;
@@ -107,35 +107,31 @@ namespace toy {
             if (*ptr == '\\') {
                 ptr++;
                 switch (*ptr) {
-                    case '\"' : value.append('\"'); break;
-                    case '\\' : value.append('\\'); break;
-                    case '/' : value.append('/') ; break;
-                    case 'b' : value.append('\b'); break;
-                    case 'f' : value.append('\f'); break;
-                    case 'n' : value.append('\n'); break;
-                    case 'r' : value.append('\r'): break;
-                    case 't' : value.append('\t'); break;
-                    case 'u' : value.append();
-                                value.append();
+                    case '\"' : value.push_back('\"'); break;
+                    case '\\' : value.push_back('\\'); break;
+                    case '/' : value.push_back('/') ; break;
+                    case 'b' : value.push_back('\b'); break;
+                    case 'f' : value.push_back('\f'); break;
+                    case 'n' : value.push_back('\n'); break;
+                    case 'r' : value.push_back('\r'); break;
+                    case 't' : value.push_back('\t'); break;
+                    case 'u' :
                 }
             }
         }
         return value;
     }
 
-
-    char JsonReader::hexValue(const char json_char) {
-        if (isdigit(json_char)) {
-            return json_char - '0';
-        }
-        switch (json_char) {
-            case 'a': case 'A': return 0x0A;
-            case 'b': case 'B': return 0x0B;
-            case 'c': case 'C': return 0x0C;
-            case 'd': case 'D': return 0x0D;
-            case 'e': case 'E': return 0x0E;
-            case 'f': case 'F': return 0x0F;
-            default: return 0xFF;
-        }
+    JsonValue* JsonReader::parserStringValue(const char *json_str, char **end_ptr) {
+        JsonValue *value = new JsonValue(kStringType, parserString(json_str, end_ptr));
+        return value;
     }
+
+    JsonValue* JsonReader::parserBool(const char *json_str, char **end_ptr) {
+
+    }
+    JsonValue* JsonReader::parserArray(const char *json_str, char **end_ptr) {
+
+    }
+
 }

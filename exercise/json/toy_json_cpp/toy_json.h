@@ -76,12 +76,12 @@ namespace toy{
         JsonValue * parserObject(const char *json_str, char **end_ptr);
         JsonValue * parserArray(const char *json_str,  char **end_ptr);
         std::string  parserString(const char *json_str,  char **end_ptr);
-        JsonValue * parserInteger(const char *json_str,  char **end_ptr));
-        JsonValue * parserBool(const char *json_str,  char **end_ptr));
+        JsonValue * parserStringValue(const char *json_str, char **end_ptr);
+        JsonValue * parserInteger(const char *json_str,  char **end_ptr);
+        JsonValue * parserBool(const char *json_str,  char **end_ptr);
         JsonValue * parserNull(const char *json_str, char **end_ptr);
         const char *skipspaces(const char *json_str);
         JsonType parserJsonType(const char *json_str);
-        char hexValue(const char json_char);
 
     };
 
