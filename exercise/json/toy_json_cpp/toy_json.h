@@ -8,18 +8,12 @@
 
 #include <cstddef>
 #include <string>
+#include <unordered_map>
+#include <string>
+#include <vector>
 
 namespace toy{
 
-//    enum JsonType{
-//        kNullType,
-//        kTureType,
-//        kFalseType,
-//        kObjectType,
-//        kArrayType,
-//        kStringType,
-//        kNumberType,
-//    };
 
     enum JsonType {
         kNullType,
@@ -33,50 +27,68 @@ namespace toy{
     };
 
     struct JsonValue;
-    struct JsonString{
-        int length;
-        char *str;
-    };
-
     struct JsonObject{
-        JsonString key;
-        JsonValue *value;
+        std::unordered_map<std::string, JsonValue *> objects;
     };
 
     struct JsonArray {
-        int array_len;
-        JsonValue *value;
+        std::vector<JsonValue * > array;
     };
 
-    struct JsonValue{
-        struct JsonValue *parent;
+    struct JsonValue {
+//        struct JsonValue *parent;
         JsonType type;
         union {
+            bool b;
             int i;
             long l;
             double d;
-            JsonString str;
+            std::string *str;
             JsonObject object;
             JsonArray array;
         } u;
-
     };
+//
+//    enum JsonFlag {
+//        kObjectStart = '{',
+//        kObjectEnd = '}',
+//        kArrarStart = '[',
+//        kArrayEnd = ']',
+//        kStringStart = '\"',
+//        kStringEnd = '\"',
+//        kDelimiter = ':',
+//    };
+
+
+
 
 
 
 
     class JsonReader{
     public:
-        int parse(const char *json_str, JsonValue &value);
-        int parse(const char *json_str, const int json_len, JsonValue &value);
+        JsonValue * parser(const char *json_str);
+        JsonValue * parser(const char *json_str, const size_t json_len);
 
     private:
-        int parseObject(const char *json_str, );
+        std::string parserKey(const char *json_str, char **end_ptr);
+        JsonValue * parserValue(const char *json_str, char **end_ptr);
+        JsonValue * parserObject(const char *json_str, char **end_ptr);
+        JsonValue * parserArray(const char *json_str,  char **end_ptr);
+        std::string  parserString(const char *json_str,  char **end_ptr);
+        JsonValue * parserInteger(const char *json_str,  char **end_ptr));
+        JsonValue * parserBool(const char *json_str,  char **end_ptr));
+        JsonValue * parserNull(const char *json_str, char **end_ptr);
+        const char *skipspaces(const char *json_str);
+        JsonType parserJsonType(const char *json_str);
+        char hexValue(const char json_char);
 
     };
+
+
     class JsonWriter{
     public :
-        std::string write(const JsonValue &value);
+        std::string write(const  JsonValue &value);
 
 
     };
