@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 
     std::string json_string = "{\"name\": \"ruoshui\",\"age\": 30}";
     toy::JsonReader json_reader;
-    toy::JsonValue json_value;
+    toy::JsonValue *json_value;
     if (json_reader.parser(json_string.c_str())){
 
     } else {

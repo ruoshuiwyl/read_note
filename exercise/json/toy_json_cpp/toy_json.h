@@ -26,26 +26,40 @@ namespace toy{
         kDoubleType,
     };
 
-    struct JsonValue;
-    struct JsonObject{
-        std::unordered_map<std::string, JsonValue *> objects;
-    };
-
-    struct JsonArray {
-        std::vector<JsonValue * > array;
-    };
 
     struct JsonValue {
-//        struct JsonValue *parent;
+
+        JsonValue(JsonType t){
+            type = t;
+        } // null
+        JsonValue(JsonType t, bool value) {
+            type = t;
+            u.b = value;
+        }// true or false
+        JsonValue(JsonType t, int value){
+            type = t;
+            u.i = value;
+        }// Number
+        JsonValue(JsonType t, double value){
+            type = t;
+            u.d = value;
+        }// Number
+        JsonValue(JsonType t, std::string &value) {
+            type = t;
+            u.str = value;
+        }
+         //
+
+        //        struct JsonValue *parent;
         JsonType type;
         union {
             bool b;
             int i;
             long l;
             double d;
-            std::string *str;
-            JsonObject object;
-            JsonArray array;
+            std::string str;
+            std::unordered_map<std::string, JsonValue *> object;
+            std::vector<JsonValue*> array;
         } u;
     };
 //
@@ -77,11 +91,11 @@ namespace toy{
         JsonValue * parserArray(const char *json_str,  char **end_ptr);
         std::string  parserString(const char *json_str,  char **end_ptr);
         JsonValue * parserStringValue(const char *json_str, char **end_ptr);
-        JsonValue * parserInteger(const char *json_str,  char **end_ptr);
-        JsonValue * parserBool(const char *json_str,  char **end_ptr);
-        JsonValue * parserNull(const char *json_str, char **end_ptr);
+        JsonValue * parserNumber(const char *json_str,  char **end_ptr);
+        double parserFrac(const char *json_str, char **end_ptr);
+        long parserInteger(const char *json_str,  char **end_ptr);
+        JsonValue * parserBool(const char *json_str, char **end_ptr);
         const char *skipspaces(const char *json_str);
-        JsonType parserJsonType(const char *json_str);
 
     };
 
