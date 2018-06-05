@@ -89,6 +89,7 @@ namespace toy{
     }
 
 
+
     char utf8_encoding::HexValue(char c) {
             if (isdigit(c))
                 return c - '0';

@@ -11,42 +11,54 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <variant>
+#include "encodings.h"
 
 namespace toy{
 
 
     enum JsonType {
         kNullType,
-        kTureType,
+        kTrueType,
         kFalseType,
         kObjectType,
         kArrayType,
         kStringType,
-        kIntergeType,
+        kIntegerType,
         kDoubleType,
     };
+
+    struct JsonValue;
+    typedef std::unordered_map<std::string, JsonValue *> Object;
+    typedef std::vector<JsonValue *> Array;
 
 
     struct JsonValue {
 
-        JsonValue(JsonType t){
+        JsonValue(JsonType t) {
             type = t;
+            u.i = 0;
         } // null
-        JsonValue(JsonType t, bool value) {
-            type = t;
+        JsonValue(bool value) {
             u.b = value;
+            if (value){
+                type = kTrueType;
+            } else {
+                type = kFalseType;
+
+            }
         }// true or false
-        JsonValue(JsonType t, int value){
-            type = t;
+        JsonValue(int value){
+            type = kIntegerType;
             u.i = value;
         }// Number
-        JsonValue(JsonType t, double value){
-            type = t;
+        JsonValue(double value){
+            type = kDoubleType;
             u.d = value;
         }// Number
-        JsonValue(JsonType t, std::string &value) {
-            type = t;
-            u.str = value;
+        JsonValue(std::string &value) {
+            type = kStringType;
+            u.value = new std::string(value);
         }
          //
 
@@ -57,9 +69,12 @@ namespace toy{
             int i;
             long l;
             double d;
-            std::string str;
-            std::unordered_map<std::string, JsonValue *> object;
-            std::vector<JsonValue*> array;
+            void *value;
+//            void *str;
+//            void *object;
+//            void *array;
+//            std::unordered_map<std::string, JsonValue *> object;
+//            std::vector<JsonValue*> array;
         } u;
     };
 //
@@ -97,13 +112,21 @@ namespace toy{
         JsonValue * parserBool(const char *json_str, char **end_ptr);
         const char *skipspaces(const char *json_str);
 
+        utf8_encoding utf8_encoding_;
+
     };
 
 
     class JsonWriter{
     public :
-        std::string write(const  JsonValue &value);
+        std::string write(const  JsonValue *value);
 
+    private:
+        int writeObject(const toy::JsonValue *object, std::string &json_str, int depth);
+        int writeString(const std::string &str, std::string &json_str);
+        int writeArray(const JsonValue *value, std::string &json_str, int depth);
+        int writeValue(const toy::JsonValue *value, std::string &json_str, int depth);
+        utf8_encoding utf8_encoding_;
 
     };
 
