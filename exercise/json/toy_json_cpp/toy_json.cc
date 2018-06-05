@@ -30,18 +30,36 @@ namespace toy {
 
         if (*json_str == '{') {
             JsonValue *value = new JsonValue(kObjectType);
+            value->u.value = reinterpret_cast<void *>(new Object);
+            Object *object = reinterpret_cast<Object *>(value->u.value);
             const char *ptr = json_str;
-            char *end_ptr = nullptr;
-            if (*ptr == '"') {
-                std::string key = parserKey(ptr, &end_ptr);
-                ptr = skipspaces(end_ptr);
+            ptr++;
+            ptr = skipspaces(ptr);
+            char *endptr = nullptr;
+            while (*ptr == '"') {
+                std::string key = parserKey(ptr, &endptr);
+                ptr = skipspaces(endptr);
                 if (*ptr == ':' ) {
+                    ptr++;
                     ptr = skipspaces(ptr);
-
-                } else {
-
+                    JsonValue *json_value = parserValue(ptr, &endptr);
+                    if (json_value != nullptr) {
+                        (*object)[key] = json_value; // next pair
+                        ptr = skipspaces(endptr);
+                        if (*ptr != ',') {
+                            break;
+                        } else {
+                            ptr++; // skip ','
+                            ptr = skipspaces(ptr);
+                        }
+                    } else { // parser value error
+                        return nullptr;
+                    }
                 }
-            } else if (*ptr == '}') {
+            }
+            if (*ptr == '}') {
+                ptr++;
+                *end_ptr = (char*)ptr;
                 return value;
             }
         } else {
@@ -63,7 +81,7 @@ namespace toy {
 
     JsonValue* JsonReader::parserValue(const char *json_str, char **end_ptr) {
         const char *ptr = skipspaces(json_str);
-        JsonValue *value;
+        JsonValue *value = nullptr;
         switch  (*ptr) {
             case '{': //parser Object
                 value = parserObject(ptr, end_ptr);
@@ -103,6 +121,9 @@ namespace toy {
     std::string JsonReader::parserString(const char *json_str, char **end_ptr) {
         std::string value;
         const char *ptr = json_str;
+        if (*ptr == '"') { //skip "
+            ptr++;
+        }
         while (*ptr != '"') {
             if (*ptr == '\\') {
                 ptr++;
@@ -119,6 +140,9 @@ namespace toy {
                         ptr += 4;
                         break;
                 }
+            } else {
+                value.push_back(*ptr);
+                ptr++;
             }
         }
         if (*ptr == '"') {
@@ -157,6 +181,8 @@ namespace toy {
     }
     JsonValue* JsonReader::parserArray(const char *json_str, char **end_ptr) {
         JsonValue *value = new JsonValue(kArrayType);
+        value->u.value = reinterpret_cast<void *>( new Array);
+        Array *array = reinterpret_cast<Array *>(value->u.value);
         const  char *ptr = json_str ;
         char *end;
         if (*ptr == '[') {
@@ -165,7 +191,7 @@ namespace toy {
         while (*ptr != ']') {
             ptr = skipspaces(ptr);
             JsonValue *value = parserValue(ptr, &end);
-            reinterpret_cast<Array *>(value->u.value)->push_back(value);
+            array->push_back(value);
             ptr = skipspaces(end);
             if (*ptr == ','){
                 ptr++;
@@ -186,18 +212,19 @@ namespace toy {
         value->u.l = val;
         if (*end == '.') {
             value->type = kDoubleType;
-            double d = parserFrac(ptr, &end);
-            d = d + val;
+            end++;
+            double d = parserFrac(end, &end);
+            d = val < 0.0 ? -d + val : d + val;
             if (*end == 'e' || *end == 'E') {
                 end++;
                 if (*end == '-') {
-                    long l = parserInteger(ptr, &end);
+                    long l = parserInteger(end, &end);
                     d = d * pow(10, l);
                 } else if (isdigit(*end)){
-                    long l = parserInteger(ptr, &end);
+                    long l = parserInteger(end, &end);
                     d = d * pow(10, l);
                 } else if (*end == '+'){
-                    long l = parserInteger(ptr, &end);
+                    long l = parserInteger(end, &end);
                     d = d * pow(10, l);
                 }
             }
@@ -207,13 +234,13 @@ namespace toy {
             double d = val;
             end++;
             if (*end == '-') {
-                long l = parserInteger(ptr, &end);
+                long l = parserInteger(end, &end);
                 d = d * pow(10, l);
             } else if (isdigit(*end)){
-                long l = parserInteger(ptr, &end);
+                long l = parserInteger(end, &end);
                 d = d * pow(10, l);
             } else if (*end == '+'){
-                long l = parserInteger(ptr, &end);
+                long l = parserInteger(end, &end);
                 d = d * pow(10, l);
             }
             value->u.d = d;
@@ -241,7 +268,7 @@ namespace toy {
             json_str++;
         }
         while (isdigit(*json_str)){
-            val += val * 10 + (*json_str - '0');
+            val = val * 10 + (*json_str - '0');
             json_str++;
         }
         *end_ptr = (char *)json_str;
@@ -251,36 +278,35 @@ namespace toy {
 
 
 
-
-
-
-
-
-
-    std::string JsonWriter::write(const toy::JsonValue *value) {
-        std::string json_str;
+    int JsonWriter::write(const toy::JsonValue *value, std::string &json_str) {
+        int result ;
         if (value->type == kObjectType) {
-            if (writeObject(value, json_str, 0);
+            if (result = writeObject(value, json_str, 0)) {
+                return result;
+            }
         }
-        return json_str;
+        return result;
     }
 
 
     int JsonWriter::writeObject(const toy::JsonValue *object, std::string &json_str, int depth) {
-        int result;
-        if (object->u.object.empty()) {
+        int result = 0;
+        if (reinterpret_cast<Object*>(object->u.value)->empty()) {
             json_str.append("{}\n");
         } else {
             json_str.append("{\n");
             int object_idx = 0;
-            for (auto &pair : object->u.object) {
-                for (int i = 0; i < depth; ++i){
+            int object_size = reinterpret_cast<Object *>(object->u.value)->size();
+            for (auto &pair : *(reinterpret_cast<Object *>(object->u.value))) {
+
+                for (int i = 0; i < depth + 1; ++i){
                     json_str.append("\t");
                 }
-                writeString(pair.first, json_str);
-                json_str.append(": ");
+                json_str.push_back('"');
+                writeKey(pair.first, json_str);
+                json_str.append("\": ");
                 if (!writeValue(pair.second, json_str, depth)){
-                    if (object_idx != object->u.object.size() - 1) {
+                    if (object_idx != object_size - 1) {
                         json_str.append(",\n");
                     } else {
                         json_str.append("\n");
@@ -288,17 +314,19 @@ namespace toy {
                 } else {
                     result = 2;
                 }
+                object_idx++;
 
             }
+            json_str.append("}\n");
+
         }
         return result;
     }
 
-    int JsonWriter::writeString(const std::string &str, std::string &json_str) {
-        json_str.append("\"");
-        for (int i = 0; i < str.size(); ){
-            if (str[i] < 0x80) {
-                switch (str[i]) {
+    int JsonWriter::writeKey(const std::string &val, std::string &json_str) {
+        for (int i = 0; i < val.size(); ) {
+            if (val[i] < 0x80) {
+                switch (val[i]) {
                     case '\\':
                         json_str.append("\\");
                         break;
@@ -324,30 +352,38 @@ namespace toy {
                         json_str.append("\\n");
                         break;
                     default:
-                        json_str.push_back(str[i]);
+                        json_str.push_back(val[i]);
                         break;
 
                 }
                 i++;
             } else {
-                const char * ptr = str.c_str() + i;
-                i += utf8_encoding.decode(ptr, json_str);
+                const char *ptr = val.c_str() + i;
+                i += utf8_encoding_.decode(ptr, json_str);
             }
         }
-        json_str.append("\"");
         return 0;
+    }
+
+    int JsonWriter::writeString(const JsonValue *value, std::string &json_str) {
+        json_str.append("\"");
+        std::string *str = reinterpret_cast<std::string *> (value->u.value);
+        int result = writeKey(*str, json_str);
+        json_str.append("\"");
+        return result;
     }
 
 
     int JsonWriter::writeArray(const JsonValue *value, std::string &json_str, int depth) {
         int result = 0;
         json_str.append("[\n");
-        for (int i = 0; i < value->u.array.size(); ++i){
+        Array *array = reinterpret_cast<Array *>(value->u.value);
+        for (int i = 0; i < array->size(); ++i){
             for (int i= 0; i <= depth; ++i) {
                 json_str.append("\t");
             }
-            if (!writeValue(value->u.array[i], json_str, depth)) {
-                if (i !=  value->u.array.size() - 1) {
+            if (!writeValue(array->at(i), json_str, depth)) {
+                if (i !=  array->size() - 1) {
                     json_str.append(",\n");
                 } else {
                     json_str.append("\n");
@@ -359,13 +395,13 @@ namespace toy {
         for (int i= 0; i < depth; ++i) {
             json_str.append("\t");
         }
-        json_str.append("[\n");
+        json_str.append("]");
         return result;
 
     }
 
     int JsonWriter::writeValue(const toy::JsonValue *value, std::string &json_str, int depth) {
-        int result;
+        int result = 0;
         switch (value->type) {
             case kNullType:
                 json_str.append("null");
@@ -383,7 +419,7 @@ namespace toy {
                 result = writeArray(value, json_str, depth + 1);
                 break;
             case kStringType:
-                result = writeString(value->u.str, json_str);
+                result = writeString(value, json_str);
                 break;
             case kIntegerType:
                 json_str += std::to_string(value->u.l);
@@ -392,6 +428,7 @@ namespace toy {
                 json_str += std::to_string(value->u.d);
                 break;
         }
+        return result;
     }
 
 

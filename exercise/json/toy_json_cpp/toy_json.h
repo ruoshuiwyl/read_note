@@ -119,11 +119,11 @@ namespace toy{
 
     class JsonWriter{
     public :
-        std::string write(const  JsonValue *value);
-
+        int write(const toy::JsonValue *value, std::string &json_str);
     private:
         int writeObject(const toy::JsonValue *object, std::string &json_str, int depth);
-        int writeString(const std::string &str, std::string &json_str);
+        int writeString(const JsonValue *value, std::string &json_str);
+        int writeKey(const std::string &val, std::string &json_str);
         int writeArray(const JsonValue *value, std::string &json_str, int depth);
         int writeValue(const toy::JsonValue *value, std::string &json_str, int depth);
         utf8_encoding utf8_encoding_;
