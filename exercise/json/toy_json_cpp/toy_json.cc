@@ -317,6 +317,9 @@ namespace toy {
                 object_idx++;
 
             }
+            for (int i = 0; i < depth; ++i) {
+                json_str.append("\t");
+            }
             json_str.append("}\n");
 
         }
