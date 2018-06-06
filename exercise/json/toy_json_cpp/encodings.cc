@@ -50,23 +50,23 @@ namespace toy{
         int utf8_size;
         int utf8[4];
         int value;
-        if (*value_str > 0xF0) {
+        if ((*value_str & 0xF0 )== 0xF0) {
             utf8_size = 4;
-            value = value_str[0] & 0x7;
+            value = value_str[0] & 0x07;
             value <<= 6;
             value |= value_str[1] & 0x3f;
             value <<= 6;
             value |= value_str[2] & 0x3f;
             value <<= 6;
             value |= value_str[3] & 0x3f;
-        } else if (*value_str > 0xE0) {
+        } else if ((*value_str & 0xE0) == 0xE0) {
             utf8_size = 3;
-            value = value_str[0] & 0xf;
+            value = value_str[0] & 0x0f;
             value <<= 6;
             value |= value_str[1] & 0x3f;
             value <<= 6;
             value |= value_str[2] & 0x3f;
-        } else if (*value_str > 0xC0) {
+        } else if ((*value_str & 0xC0 )== 0xC0) {
             utf8_size = 2;
             value = value_str[0] & 0x1f;
             value <<= 6;
@@ -75,11 +75,12 @@ namespace toy{
             value = value_str[0];
             utf8_size = 1;
             json_str.push_back(*value_str);
+            return utf8_size;
         }
-        utf8[0] = (value >> 12)& 0xf;
-        utf8[1] = (value >> 8)& 0xf;
-        utf8[2] = (value >> 4)& 0xf;
-        utf8[3] = value & 0xf;
+        utf8[0] = (value >> 12)& 0x0f;
+        utf8[1] = (value >> 8)& 0x0f;
+        utf8[2] = (value >> 4)& 0x0f;
+        utf8[3] = value & 0x0f;
         json_str.append("\\u");
         json_str.push_back(HexChar(utf8[0]));
         json_str.push_back(HexChar(utf8[1]));

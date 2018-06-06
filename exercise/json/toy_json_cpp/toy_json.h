@@ -13,86 +13,9 @@
 #include <vector>
 #include <variant>
 #include "encodings.h"
+#include "json_value.h"
 
 namespace toy{
-
-
-    enum JsonType {
-        kNullType,
-        kTrueType,
-        kFalseType,
-        kObjectType,
-        kArrayType,
-        kStringType,
-        kIntegerType,
-        kDoubleType,
-    };
-
-    struct JsonValue;
-    typedef std::unordered_map<std::string, JsonValue *> Object;
-    typedef std::vector<JsonValue *> Array;
-
-
-    struct JsonValue {
-
-        JsonValue(JsonType t) {
-            type = t;
-            u.i = 0;
-        } // null
-        JsonValue(bool value) {
-            u.b = value;
-            if (value){
-                type = kTrueType;
-            } else {
-                type = kFalseType;
-
-            }
-        }// true or false
-        JsonValue(int value){
-            type = kIntegerType;
-            u.i = value;
-        }// Number
-        JsonValue(double value){
-            type = kDoubleType;
-            u.d = value;
-        }// Number
-        JsonValue(std::string &value) {
-            type = kStringType;
-            u.value = new std::string(value);
-        }
-         //
-
-        //        struct JsonValue *parent;
-        JsonType type;
-        union {
-            bool b;
-            int i;
-            long l;
-            double d;
-            void *value;
-//            void *str;
-//            void *object;
-//            void *array;
-//            std::unordered_map<std::string, JsonValue *> object;
-//            std::vector<JsonValue*> array;
-        } u;
-    };
-//
-//    enum JsonFlag {
-//        kObjectStart = '{',
-//        kObjectEnd = '}',
-//        kArrarStart = '[',
-//        kArrayEnd = ']',
-//        kStringStart = '\"',
-//        kStringEnd = '\"',
-//        kDelimiter = ':',
-//    };
-
-
-
-
-
-
 
     class JsonReader{
     public:
@@ -119,13 +42,13 @@ namespace toy{
 
     class JsonWriter{
     public :
-        int write(const toy::JsonValue *value, std::string &json_str);
+        int write(const JsonValue *value, std::string &json_str);
     private:
-        int writeObject(const toy::JsonValue *object, std::string &json_str, int depth);
+        int writeObject(const JsonValue *object, std::string &json_str, int depth);
         int writeString(const JsonValue *value, std::string &json_str);
-        int writeKey(const std::string &val, std::string &json_str);
+        int writeString(const std::string &val, std::string &json_str);
         int writeArray(const JsonValue *value, std::string &json_str, int depth);
-        int writeValue(const toy::JsonValue *value, std::string &json_str, int depth);
+        int writeValue(const JsonValue *value, std::string &json_str, int depth);
         utf8_encoding utf8_encoding_;
 
     };

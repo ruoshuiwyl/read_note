@@ -278,7 +278,7 @@ namespace toy {
 
 
 
-    int JsonWriter::write(const toy::JsonValue *value, std::string &json_str) {
+    int JsonWriter::write(const JsonValue *value, std::string &json_str) {
         int result ;
         if (value->type == kObjectType) {
             if (result = writeObject(value, json_str, 0)) {
@@ -289,7 +289,7 @@ namespace toy {
     }
 
 
-    int JsonWriter::writeObject(const toy::JsonValue *object, std::string &json_str, int depth) {
+    int JsonWriter::writeObject(const JsonValue *object, std::string &json_str, int depth) {
         int result = 0;
         if (reinterpret_cast<Object*>(object->u.value)->empty()) {
             json_str.append("{}\n");
@@ -303,7 +303,7 @@ namespace toy {
                     json_str.append("\t");
                 }
                 json_str.push_back('"');
-                writeKey(pair.first, json_str);
+                writeString(pair.first, json_str);
                 json_str.append("\": ");
                 if (!writeValue(pair.second, json_str, depth)){
                     if (object_idx != object_size - 1) {
@@ -326,9 +326,13 @@ namespace toy {
         return result;
     }
 
-    int JsonWriter::writeKey(const std::string &val, std::string &json_str) {
+    int JsonWriter::writeString(const std::string &val, std::string &json_str) {
         for (int i = 0; i < val.size(); ) {
-            if (val[i] < 0x80) {
+            if (val[i] & 0x80) {
+                const char *ptr = val.c_str() + i;
+                i += utf8_encoding_.decode(ptr, json_str);
+
+            } else {
                 switch (val[i]) {
                     case '\\':
                         json_str.append("\\");
@@ -360,9 +364,6 @@ namespace toy {
 
                 }
                 i++;
-            } else {
-                const char *ptr = val.c_str() + i;
-                i += utf8_encoding_.decode(ptr, json_str);
             }
         }
         return 0;
@@ -371,7 +372,7 @@ namespace toy {
     int JsonWriter::writeString(const JsonValue *value, std::string &json_str) {
         json_str.append("\"");
         std::string *str = reinterpret_cast<std::string *> (value->u.value);
-        int result = writeKey(*str, json_str);
+        int result = writeString(*str, json_str);
         json_str.append("\"");
         return result;
     }
@@ -403,7 +404,7 @@ namespace toy {
 
     }
 
-    int JsonWriter::writeValue(const toy::JsonValue *value, std::string &json_str, int depth) {
+    int JsonWriter::writeValue(const JsonValue *value, std::string &json_str, int depth) {
         int result = 0;
         switch (value->type) {
             case kNullType:
