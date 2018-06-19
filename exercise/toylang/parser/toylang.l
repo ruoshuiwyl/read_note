@@ -20,7 +20,7 @@
 <INITIAL>"true"   { return TRUE;}
 <INITIAL>"bool"   { return BOOL;}
 <INITIAL>"string" { return STRING;}
-<INITIAL>
+<INITIAL>"elsif"  { return ELSIF;}
 
 <INITIAL>"(" { return LP; }
 <INITIAL>")" { return RP; }
