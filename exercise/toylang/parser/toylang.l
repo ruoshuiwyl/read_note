@@ -14,7 +14,7 @@ extern "C" int yywrap(){}
 <COMMENT>"\n"   { BEGIN (INITIAL); }
 <INITIAL>[ \t\n] {}
 <INITIAL>[a-zA-Z_][a-zA-Z0-9_]* {SAVE_TOKEN; return IDENTIFIER;}
-<INITIAL>[-+]?[0-9]+.[0-9]*          {SAVA_TOKEN; return DOUBLE;}
+<INITIAL>[-+]?[0-9]+.[0-9]*          {SAVE_TOKEN; return DOUBLE;}
 <INITIAL>[-+]?[0-9]+                 {SAVE_TOKEN; return INTEGER;}
 
 <INITIAL>"break"  { return BREAK;}
@@ -24,13 +24,13 @@ extern "C" int yywrap(){}
 <INITIAL>"elsif"  { return ELSIF;}
 <INITIAL>"false"  { return FALSE;}
 <INITIAL>"fn"     { return FUNC;}
-<INTIIAL>"for"    { return FOR; }
+<INITIAL>"for"    { return FOR; }
 <INITIAL>"if"     { return IF; }
 <INITIAL>"lambda" { return LAMBDA;}
 <INITIAL>"match"  { return MATCH;}
 <INITIAL>"return" { return RETURN;}
 <INITIAL>"string" { return STRING;}
-<INTIIAL>"struct" { return STRUCT;}
+<INITIAL>"struct" { return STRUCT;}
 <INITIAL>"true"   { return TRUE;}
 <INITIAL>"use"    { return USE;}
 <INITIAL>"while"  { return WHILE;}
@@ -63,8 +63,9 @@ extern "C" int yywrap(){}
 <INITIAL>"^"  { return BEOR; }
 <INITIAL>"|"  { return BOR; }
 
-<INITIAL>"->" {return RARROW;}
-<INITIAL>"=>" {return FAT_RARROW;}
+<INITIAL>"->" { return RARROW; }
+<INITIAL>"=>" { return FAT_RARROW; }
+<INITIAL>":"  { return COLON; }
 
 <INITIAL>"+=" {return ADDEQ; }
 <INITIAL>"-=" {return MISEQ; }
@@ -76,4 +77,7 @@ extern "C" int yywrap(){}
 <INITIAL>"|=" { return BOREQ; }
 <INITIAL>">>=" { return SHREQ; }
 <INITIAL>"<<=" { return SHLEQ; }
+
+
+
 %%
